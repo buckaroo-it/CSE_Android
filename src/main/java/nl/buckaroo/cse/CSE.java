@@ -9,46 +9,22 @@ import java.util.regex.Pattern;
 import javax.crypto.Cipher;
 
 public class CSE {
-    private static Boolean isNullOrWhitespace(String input) {
-        if(input == null) return true;
-        int length = input.length();
-        if (length > 0) {
-            for (int i = 0; i < length; i++) {
-                if (!Character.isWhitespace(input.charAt(i))) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
     /**
-     * Encrypts the data using RSA public key encryption
+     * Encrypts the card data using RSA public key encryption
      * @return A base64 encoded value that can be used to initiate a transaction using the Buckaroo Payment Gateway
      */
     public static String encrypt(String cardNumber, String year, String month, String cvc, String cardholder) {
         String encryptableString = cardNumber + "," + year + "," + month + "," + cvc + "," + cardholder;
+        return encryptString(encryptableString);
+    }
 
-        try {
-            Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA-1AndMGF1Padding");
-            BigInteger modulus = new BigInteger(Base64.decode("AODXS2u1iKvsoHE6OLRhbvHnO6kcLWdYyxIyp7V37OeoGlrWmEsXPnq+5Yxttq27+NU+a2mH3c7z6ld2HExQji6XSSCZM076K2PiA0dPZDerhyhrrUo3ZA6WKyhR3lP8dFuz9BlFtknNeAexvy/AtnjEqpAwDLQDcrzgh3ZP9nIWDoGKiLmXyJ02jRMx22G+ovg+bCnrtQ9eRtrhBWPoJLi5rQ6t8T1MyvxvoWhuCrCC+SSm7fpFd/w4m7tzlKYjAzdWKaHKmlEebKBZioiYtTx7YEGdGsnV8b3hyEYbRPuRYC+8N9O4DqmzCeKt31wwGUMygcJTWJ8IAGhVtT0s5Pc=", Base64.DEFAULT));
-            BigInteger publicExponent = new BigInteger(Base64.decode("AQAB", Base64.DEFAULT));
-
-            RSAPublicKeySpec keySpecX509 = new RSAPublicKeySpec(modulus, publicExponent);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            RSAPublicKey pubKey = (RSAPublicKey) kf.generatePublic(keySpecX509);
-            cipher.init(Cipher.ENCRYPT_MODE, pubKey);
-
-            byte[] encryptableBytes = encryptableString.getBytes("UTF8");
-            byte[] cipherText = cipher.doFinal(encryptableBytes);
-
-            return "001" + Base64.encodeToString(cipherText, Base64.DEFAULT);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+    /**
+     * Encrypts the security code using RSA public key encryption
+     * @return A base64 encoded value that can be used to initiate a transaction using the Buckaroo Payment Gateway
+     */
+    public static String encrypt(String securityCode) {
+        String encryptableString = securityCode;
+        return encryptString(encryptableString);
     }
 
     /**
@@ -202,5 +178,41 @@ public class CSE {
         }
 
         return CardBrand.Unknown;
+    }
+
+    private static Boolean isNullOrWhitespace(String input) {
+        if(input == null) return true;
+        int length = input.length();
+        if (length > 0) {
+            for (int i = 0; i < length; i++) {
+                if (!Character.isWhitespace(input.charAt(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static String encryptString(String encryptableString) {
+        try {
+            Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA-1AndMGF1Padding");
+            BigInteger modulus = new BigInteger(Base64.decode("AODXS2u1iKvsoHE6OLRhbvHnO6kcLWdYyxIyp7V37OeoGlrWmEsXPnq+5Yxttq27+NU+a2mH3c7z6ld2HExQji6XSSCZM076K2PiA0dPZDerhyhrrUo3ZA6WKyhR3lP8dFuz9BlFtknNeAexvy/AtnjEqpAwDLQDcrzgh3ZP9nIWDoGKiLmXyJ02jRMx22G+ovg+bCnrtQ9eRtrhBWPoJLi5rQ6t8T1MyvxvoWhuCrCC+SSm7fpFd/w4m7tzlKYjAzdWKaHKmlEebKBZioiYtTx7YEGdGsnV8b3hyEYbRPuRYC+8N9O4DqmzCeKt31wwGUMygcJTWJ8IAGhVtT0s5Pc=", Base64.DEFAULT));
+            BigInteger publicExponent = new BigInteger(Base64.decode("AQAB", Base64.DEFAULT));
+
+            RSAPublicKeySpec keySpecX509 = new RSAPublicKeySpec(modulus, publicExponent);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            RSAPublicKey pubKey = (RSAPublicKey) kf.generatePublic(keySpecX509);
+            cipher.init(Cipher.ENCRYPT_MODE, pubKey);
+
+            byte[] encryptableBytes = encryptableString.getBytes("UTF8");
+            byte[] cipherText = cipher.doFinal(encryptableBytes);
+
+            return "001" + Base64.encodeToString(cipherText, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
